@@ -155,14 +155,22 @@ def download_ec2pricelist():
 
     try:
         ec2pricelist = urllib.URLopener()
-        ec2pricelist.retrieve("https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv","index.csv")
+        #changed by Beta 2018-12-27
+        pricing_url = ''
+        if CW_REGION.startswith('cn-'):
+            #for china region
+            pricing_url = "https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/cn/AmazonEC2/current/index.csv"
+        else:
+        	pricing_url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv"
+        
+        ec2pricelist.retrieve(pricing_url,"index.csv")
         #if CURRENTOS == "Linux":
-        #    ls_download_ec2pricelist = "wget https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv -q"
+        #    ls_download_ec2pricelist = "wget https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/aws/AmazonEC2/current/index.csv -q"
         #elif CURRENTOS == "Windows":
-        #    ls_download_ec2pricelist = "curl https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv -o index.csv"
+        #    ls_download_ec2pricelist = "curl https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/aws/AmazonEC2/current/index.csv -o index.csv"
         #os.system(ls_download_ec2pricelist)
     except Exception as inst:
-        logging.error("Could not download the EC2 pricelist from https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv")
+        logging.error("Could not download the EC2 pricelist from " + pricing_url)
         exit()
 
     if os.path.exists("index.csv"):
@@ -217,9 +225,11 @@ def import_ec2pricelist(db_conn, p_ec2pricelist_file):
     ls_update_pricelist_sql += " when location='EU (Ireland)' then 'EUW1' "
     ls_update_pricelist_sql += " when location='South America (Sao Paulo)' then 'SAE1' "
     ls_update_pricelist_sql += " when location='Asia Pacific (Mumbai)' then 'APS1' "
+    ls_update_pricelist_sql += " when location='China (Ningxia)' then 'CNW1' "
+    ls_update_pricelist_sql += " when location='China (Beijing)' then 'CNN1' "
     ls_update_pricelist_sql += " end "
     execute_dml_ddl(db_conn, ls_update_pricelist_sql)
-    ls_delete_zero_entry_pricelist_sql = "delete from " + ls_temp_price_table + " where to_number(trim(both ' ' from priceperunit),'9999999D99999999') <= 0.00"
+    ls_delete_zero_entry_pricelist_sql = "delete from " + ls_temp_price_table + " where to_number(trim(both ' ' from priceperunit),'999999999D99999999') <= 0.00"
     execute_dml_ddl(db_conn, ls_delete_zero_entry_pricelist_sql)
 
     return ls_temp_price_table
@@ -288,17 +298,17 @@ def right_sizing(db_conn, pricelist_table, cw_tablename):
     ls_gen_list_sql = "create table " + ls_temp_table + " as "
     ls_gen_list_sql += " select upper(substring(a.az,1,2))||upper(substring(a.az,4,1))|| substring(substring(a.az, position('-' in a.az)+1),position('-' in substring(a.az, position('-' in a.az)+1))+1,1) as region, "
     ls_gen_list_sql += " a.instancetype, b.vcpu, b.memory, b.storage, b.networkperformance, b.priceperunit, a.instanceid, max(a.maxcpu) as maxcpu, max(a.maxiops) as maxiops, max(a.maxnetwork) as maxnetwork, a.instancetags "
-    ls_gen_list_sql += " from (select instanceid, instancetags, instanceType, az, max(to_number(trim(both ' ' from CPUUtilization),'9999999D99999999')) as maxcpu, "
-    ls_gen_list_sql += " max(to_number(trim(both ' ' from diskreadops),'9999999D99999999')/60+to_number(trim(both ' ' from diskwriteops),'9999999D99999999')/60) as maxiops, "
-    ls_gen_list_sql += " max((to_number(trim(both ' ' from networkin),'9999999999999D99999999')/60/1024/1024)*8+(to_number(trim(both ' ' from networkout),'9999999999999D99999999')/60/1024/1024)*8) as maxnetwork "
+    ls_gen_list_sql += " from (select instanceid, instancetags, instanceType, az, max(to_number(trim(both ' ' from CPUUtilization),'999999999D99999999')) as maxcpu, "
+    ls_gen_list_sql += " max(to_number(trim(both ' ' from diskreadops),'999999999D99999999')/60+to_number(trim(both ' ' from diskwriteops),'999999999D99999999')/60) as maxiops, "
+    ls_gen_list_sql += " max((to_number(trim(both ' ' from networkin),'999999999999999D99999999')/60/1024/1024)*8+(to_number(trim(both ' ' from networkout),'999999999999999D99999999')/60/1024/1024)*8) as maxnetwork "
     ls_gen_list_sql += " from " + cw_tablename
     #ls_gen_list_sql += " where accountid like '%" + ACCOUNT_ID + "%' "
     ls_gen_list_sql += " where accountid not like '%accountId%' "
     ls_gen_list_sql += " group by instanceid, instancetags, instanceType, az) a, " + pricelist_table + " b "
     ls_gen_list_sql += " where a.instanceid in (select instanceid from (select instanceid,max(maxcpu) as topcpu from "
-    ls_gen_list_sql += "(select instanceid, instancetags, instanceType, az, max(to_number(trim(both ' ' from CPUUtilization),'9999999D99999999')) as maxcpu, "
-    ls_gen_list_sql += " max(to_number(trim(both ' ' from diskreadops),'9999999D99999999')/60+to_number(trim(both ' ' from diskwriteops),'9999999D99999999')/60) as maxiops, "
-    ls_gen_list_sql += " max((to_number(trim(both ' ' from networkin),'9999999999999D99999999')/60/1024/1024)*8+(to_number(trim(both ' ' from networkout),'9999999999999D99999999')/60/1024/1024)*8) as maxnetwork "
+    ls_gen_list_sql += "(select instanceid, instancetags, instanceType, az, max(to_number(trim(both ' ' from CPUUtilization),'999999999D99999999')) as maxcpu, "
+    ls_gen_list_sql += " max(to_number(trim(both ' ' from diskreadops),'999999999D99999999')/60+to_number(trim(both ' ' from diskwriteops),'999999999D99999999')/60) as maxiops, "
+    ls_gen_list_sql += " max((to_number(trim(both ' ' from networkin),'999999999999999D99999999')/60/1024/1024)*8+(to_number(trim(both ' ' from networkout),'999999999999999D99999999')/60/1024/1024)*8) as maxnetwork "
     #ls_gen_list_sql += " from " + cw_tablename + " where accountid like '%" + ACCOUNT_ID + "%' group by instanceid, instancetags, instanceType, az) group by instanceid) where topcpu<50) "
     ls_gen_list_sql += " from " + cw_tablename + " where accountid not like '%accountId%' group by instanceid, instancetags, instanceType, az) group by instanceid) where topcpu<50) "
     ls_gen_list_sql += " and a.instancetype=b.instancetype "
@@ -384,14 +394,14 @@ def right_sizing(db_conn, pricelist_table, cw_tablename):
             ls_resizetype_sql += " and storage like '%NVMe%' "
         else:
             ls_resizetype_sql += " and storage not like '%NVMe%' "
-        ls_resizetype_sql += " order by to_number(trim(both ' ' from priceperunit),'9999999D99999999')"
+        ls_resizetype_sql += " order by to_number(trim(both ' ' from priceperunit),'999999999D99999999')"
 
         determine_right_type(db_conn, ls_resizetype_sql, ls_temp_table, ls_instanceid, ln_iops_usage, ln_ssd_total_size, ln_cpu_nbr, ln_network_level_usage, ln_rate, ln_mem)
 
     print ("\n")
-    ls_update_costsaved = "update " + ls_temp_table + " set costsavedpermonth=(to_number(trim(both ' ' from priceperunit),'9999999D99999999') - to_number(trim(both ' ' from resizeprice),'9999999D99999999'))*30*24 "
+    ls_update_costsaved = "update " + ls_temp_table + " set costsavedpermonth=(to_number(trim(both ' ' from priceperunit),'999999999D99999999') - to_number(trim(both ' ' from resizeprice),'999999999D99999999'))*30*24 "
     execute_dml_ddl(db_conn, ls_update_costsaved)
-    ls_update_totalsaved = "insert into " + ls_temp_table + " (region,costsavedpermonth) select 'Total', sum(to_number(trim(both ' ' from costsavedpermonth),'9999999999D99999999')) from " + ls_temp_table
+    ls_update_totalsaved = "insert into " + ls_temp_table + " (region,costsavedpermonth) select 'Totl', sum(to_number(trim(both ' ' from costsavedpermonth),'999999999999D99999999')) from " + ls_temp_table
     execute_dml_ddl(db_conn, ls_update_totalsaved)
     ls_delete_sametype = "delete " + ls_temp_table + " where instancetype=resizetype"
     execute_dml_ddl(db_conn, ls_delete_sametype)
@@ -448,10 +458,10 @@ if __name__ == "__main__":
     logging.info("Finish the analysis and store the instances to the table %s " % (ls_temp_table))
 
     logging.info("Dumping the instances into the csv file")
-    #ls_csv_sql = "select * from " + ls_temp_table + " order by to_number(trim(both ' ' from costsavedpermonth),'9999999999D99999999')"
+    #ls_csv_sql = "select * from " + ls_temp_table + " order by to_number(trim(both ' ' from costsavedpermonth),'999999999999D99999999')"
     ls_csv_sql = " select region, instanceid, instancetype, vcpu, memory, storage, networkperformance, priceperunit, "
     ls_csv_sql += " resizetype, newvcpu, newmemory, newstorage, newnetwork, resizeprice, costsavedpermonth, maxcpu, maxiops, maxnetwork, instancetags "
-    ls_csv_sql += " from " + ls_temp_table + " order by to_number(trim(both ' ' from costsavedpermonth),'9999999999D99999999')"
+    ls_csv_sql += " from " + ls_temp_table + " order by to_number(trim(both ' ' from costsavedpermonth),'999999999999D99999999')"
     ls_csvfile = "results_" + ls_temp_table + ".csv"
     dump_results(conn, ls_csv_sql, ls_csvfile)
     logging.info("Finish to dump to the csv file %s " % (ls_csvfile) )
