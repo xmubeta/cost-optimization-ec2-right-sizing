@@ -52,6 +52,7 @@
             "ap-south-1": {"HVM64": "ami-531a4c3c"},
             "sa-east-1": {"HVM64": "ami-84175ae8"},
             "cn-north-1": {"HVM64": "ami-cb19c4a6"},
+            "cn-northwest-1": {"HVM64": "ami-3e60745c"},
             "us-gov-west-1": {"HVM64": "ami-56f87137"}
         }
     },
@@ -140,7 +141,7 @@
                                 "Fn::Join": [
                                     "",
                                     [
-                                        "arn:aws:s3:::",
+                                        "arn:aws-cn:s3:::",
                                         {
                                             "Ref": "S3Bucket"
                                         },
@@ -154,7 +155,7 @@
                                         "Fn::Join": [
                                             "",
                                             [
-                                                "arn:aws:iam::",
+                                                "arn:aws-cn:iam::",
                                                 {
                                                     "Ref": "AWS::AccountId"
                                                 },
@@ -162,46 +163,6 @@
                                             ]
                                         ]
                                     }
-                                ]
-                            }
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": [
-                                "s3:GetBucketAcl",
-                                "s3:GetBucketPolicy"
-                            ],
-                            "Principal": {
-                                "AWS": "386209384616"
-                            },
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        {
-                                            "Ref": "S3Bucket"
-                                        }
-                                    ]
-                                ]
-                            }
-                        },
-                        {
-                            "Effect": "Allow",
-                            "Action": "s3:PutObject",
-                            "Principal": {
-                                "AWS": "386209384616"
-                            },
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        {
-                                            "Ref": "S3Bucket"
-                                        },
-                                        "/*"
-                                    ]
                                 ]
                             }
                         }
@@ -219,7 +180,7 @@
                             "Effect": "Allow",
                             "Principal": {
                                 "Service": [
-                                    "ec2.amazonaws.com"
+                                    "ec2.amazonaws.com.cn"
                                 ]
                             },
                             "Action": [
@@ -241,7 +202,7 @@
                             "Effect": "Allow",
                             "Principal": {
                                 "Service": [
-                                    "ec2.amazonaws.com"
+                                    "ec2.amazonaws.com.cn"
                                 ]
                             },
                             "Action": [
@@ -262,7 +223,7 @@
           		                "logs:CreateLogStream",
           		                "logs:PutLogEvents"
           		              ],
-          			            "Resource": { "Fn::Join" : ["", ["arn:aws:logs:",{"Ref" : "AWS::Region"},":",{ "Ref" : "AWS::AccountId" }, ":log-group:cost-optimization-ec2-right-sizing:*" ]]}
+          			            "Resource": { "Fn::Join" : ["", ["arn:aws-cn:logs:",{"Ref" : "AWS::Region"},":",{ "Ref" : "AWS::AccountId" }, ":log-group:cost-optimization-ec2-right-sizing:*" ]]}
                           }, {
                             "Effect": "Allow",
                             "Action": [
@@ -271,7 +232,7 @@
                                 "s3:GetObject"
                             ],
                             "Resource": {
-                                "Fn::Join": ["", ["arn:aws:s3:::", {
+                                "Fn::Join": ["", ["arn:aws-cn:s3:::", {
                                     "Ref": "S3Bucket"
                                 }, "/*"]]
                             }
@@ -281,7 +242,7 @@
                                 "s3:ListBucket"
                             ],
                             "Resource": {
-                                "Fn::Join": ["", ["arn:aws:s3:::", {
+                                "Fn::Join": ["", ["arn:aws-cn:s3:::", {
                                     "Ref": "S3Bucket"
                                 }]]
                             }
@@ -509,10 +470,10 @@
                                             "#!/bin/bash\n",
                                             "pip install requests jmespath boto3\n",
                                             "cd /tmp\n",
-                                            "wget https://s3.amazonaws.com/%%BUCKET_NAME%%/cost-optimization/latest/run-rightsizing-redshift.py\n",
-                                            "wget https://s3.amazonaws.com/%%BUCKET_NAME%%/cost-optimization/latest/callgcw.py\n",
-                                            "wget https://s3.amazonaws.com/%%BUCKET_NAME%%/cost-optimization/latest/getcloudwatchmetrics.py\n",
-                                            "wget https://s3.amazonaws.com/%%BUCKET_NAME%%/cost-optimization/latest/deleteandterminate.py\n",
+                                            "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/run-rightsizing-redshift.py\n",
+                                            "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/callgcw.py\n",
+                                            "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/getcloudwatchmetrics.py\n",
+                                            "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/deleteandterminate.py\n",
                                             "sed -i 's/cfn_s3_bucket_name/", {
                                                 "Fn::GetAtt": ["S3Bucket", "DomainName"]
                                             }, "/g' /tmp/run-rightsizing-redshift.py\n",
@@ -901,7 +862,7 @@
                                         "Fn::Join": [
                                             "",
                                             [
-                                                "arn:aws:logs:",
+                                                "arn:aws-cn:logs:",
                                                 {
                                                     "Ref": "AWS::Region"
                                                 },
@@ -936,7 +897,7 @@
                         "Fn::Join": [
                             "",
                             [
-                                "solutions-",
+                                "solutions-co-",
                                 {
                                     "Ref": "AWS::Region"
                                 }
