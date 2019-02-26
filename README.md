@@ -1,3 +1,12 @@
+# Before reading
+This fork is modified to be used for China region only. Here are some modifications:
+1. Change ARN from aws to aws-cn in template
+2. Change bucket name for code in template
+3. Change pricing file for China region in run-rightsizing-redshift.py
+4. Change price number format in run-rightsizing-redshift.py
+
+
+
 # AWS Cost Optimization: EC2 Right Sizing
 Source code for the AWS solution "Cost Optimization: EC2 Right Sizing". Please see the main solution for the [Cost Optimization: EC2 Right Sizing](https://aws.amazon.com/answers/account-management/cost-optimization-ec2-right-sizing/).
 
