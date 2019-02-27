@@ -5,6 +5,7 @@ This fork is modified to be used for China region only. Here are some modificati
 3. Change pricing file for China region in run-rightsizing-redshift.py
 4. Change price number format in run-rightsizing-redshift.py
 
+The quick how-to is here: [quick-how-to](https://github.com/xmubeta/cost-optimization-ec2-right-sizing/blob/master/quick-how-to.md) 
 
 
 # AWS Cost Optimization: EC2 Right Sizing
