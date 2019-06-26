@@ -649,7 +649,7 @@
                     ]
                 },
                 "NumberOfNodes": "2",
-                "NodeType": "dc1.large",
+                "NodeType": "dc2.large",
                 "DBName": "rightsizing",
                 "MasterUsername": "redshiftuser",
                 "MasterUserPassword": {
