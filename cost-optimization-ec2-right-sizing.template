@@ -468,7 +468,7 @@
                                         "",
                                         [
                                             "#!/bin/bash\n",
-                                            "pip install requests jmespath boto3\n",
+                                            "pip install requests jmespath boto3 -i https://mirrors.aliyun.com/pypi/simple/\n",
                                             "cd /tmp\n",
                                             "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/run-rightsizing-redshift.py\n",
                                             "wget https://s3.cn-north-1.amazonaws.com.cn/solutions-reference/cost-optimization/latest/callgcw.py\n",

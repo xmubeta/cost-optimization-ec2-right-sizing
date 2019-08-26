@@ -159,7 +159,7 @@ def download_ec2pricelist():
         pricing_url = ''
         if CW_REGION.startswith('cn-'):
             #for china region
-            pricing_url = "https://pricing.cn-north-1.amazonaws.com.cn/offers/v1.0/cn/AmazonEC2/current/index.csv"
+            pricing_url = "https://pricing-" + CW_REGION + ".s3." +CW_REGION + ".amazonaws.com.cn/ec2/index.csv"
         else:
         	pricing_url = "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.csv"
         
