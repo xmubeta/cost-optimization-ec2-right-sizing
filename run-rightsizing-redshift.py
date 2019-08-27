@@ -225,8 +225,8 @@ def import_ec2pricelist(db_conn, p_ec2pricelist_file):
     ls_update_pricelist_sql += " when location='EU (Ireland)' then 'EUW1' "
     ls_update_pricelist_sql += " when location='South America (Sao Paulo)' then 'SAE1' "
     ls_update_pricelist_sql += " when location='Asia Pacific (Mumbai)' then 'APS1' "
-    ls_update_pricelist_sql += " when location='China (Ningxia)' then 'CNW1' "
-    ls_update_pricelist_sql += " when location='China (Beijing)' then 'CNN1' "
+    ls_update_pricelist_sql += " when location='China (Ningxia)' then 'CN-NORTHWEST-1' "
+    ls_update_pricelist_sql += " when location='China (Beijing)' then 'CN-NORTH-1' "
     ls_update_pricelist_sql += " end "
     execute_dml_ddl(db_conn, ls_update_pricelist_sql)
     ls_delete_zero_entry_pricelist_sql = "delete from " + ls_temp_price_table + " where to_number(trim(both ' ' from priceperunit),'999999999D99999999') <= 0.00"
@@ -296,7 +296,7 @@ def right_sizing(db_conn, pricelist_table, cw_tablename):
         ls_temp_table = "rightsizing" + ''.join(random.sample(['z','y','x','w','v','u','t','s','r','q','p','o','n','m','l','k','j','i','h','g','f','e','d','c','b','a'], 8)).replace(' ','')
 
     ls_gen_list_sql = "create table " + ls_temp_table + " as "
-    ls_gen_list_sql += " select upper(substring(a.az,1,2))||upper(substring(a.az,4,1))|| substring(substring(a.az, position('-' in a.az)+1),position('-' in substring(a.az, position('-' in a.az)+1))+1,1) as region, "
+    ls_gen_list_sql += " select upper(substring(a.az,1,len(a.az)-1)) as region, "
     ls_gen_list_sql += " a.instancetype, b.vcpu, b.memory, b.storage, b.networkperformance, b.priceperunit, a.instanceid, max(a.maxcpu) as maxcpu, max(a.maxiops) as maxiops, max(a.maxnetwork) as maxnetwork, a.instancetags "
     ls_gen_list_sql += " from (select instanceid, instancetags, instanceType, az, max(to_number(trim(both ' ' from CPUUtilization),'999999999D99999999')) as maxcpu, "
     ls_gen_list_sql += " max(to_number(trim(both ' ' from diskreadops),'999999999D99999999')/60+to_number(trim(both ' ' from diskwriteops),'999999999D99999999')/60) as maxiops, "
@@ -312,10 +312,10 @@ def right_sizing(db_conn, pricelist_table, cw_tablename):
     #ls_gen_list_sql += " from " + cw_tablename + " where accountid like '%" + ACCOUNT_ID + "%' group by instanceid, instancetags, instanceType, az) group by instanceid) where topcpu<50) "
     ls_gen_list_sql += " from " + cw_tablename + " where accountid not like '%accountId%' group by instanceid, instancetags, instanceType, az) group by instanceid) where topcpu<50) "
     ls_gen_list_sql += " and a.instancetype=b.instancetype "
-    ls_gen_list_sql += " and upper(substring(a.az,1,2))||upper(substring(a.az,4,1))|| substring(substring(a.az, position('-' in a.az)+1),position('-' in substring(a.az, position('-' in a.az)+1))+1,1)=b.regionabbr "
+    ls_gen_list_sql += " and upper(substring(a.az,1,len(a.az)-1))=b.regionabbr "
     ls_gen_list_sql += " and b.termtype='OnDemand' and b.location<>'AWS GovCloud (US)' and b.servicecode='AmazonEC2' "
     ls_gen_list_sql += " and b.tenancy='Shared' and b.processorarchitecture='64-bit' and b.operatingsystem='Linux' and b.preinstalledsw='NA'"
-    ls_gen_list_sql += " group by upper(substring(a.az,1,2))||upper(substring(a.az,4,1))|| substring(substring(a.az, position('-' in a.az)+1),position('-' in substring(a.az, position('-' in a.az)+1))+1,1), "
+    ls_gen_list_sql += " group by upper(substring(a.az,1,len(a.az)-1)), "
     ls_gen_list_sql += " a.instancetype, b.vcpu, b.memory, b.storage, b.networkperformance, b.priceperunit, a.instanceid, a.instancetags"
 
     execute_dml_ddl(db_conn, ls_gen_list_sql)
