@@ -5,7 +5,7 @@ You can lauch it in BJS region or ZHY region. The result will cover all EC2s in 
 1.	Go to cloudformation (You need Admin permission)
 
 2.	Create a stack with the following template
-https://s3.cn-north-1.amazonaws.com.cn/right-sizing/right-sizing.json
+https://cn-solutions-cn-north-1.s3.cn-north-1.amazonaws.com.cn/cost-optimization-ec2-right-sizing/v2.4.1/cost-optimization-ec2-right-sizing.template
 
 ![image](https://github.com/xmubeta/cost-optimization-ec2-right-sizing/blob/master/images/step-1.jpg)
 
